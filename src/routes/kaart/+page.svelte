@@ -421,7 +421,31 @@
 		document.getElementById('kaart-map')?.classList.toggle('picking-center', pickingCenter);
 	}
 
-	onMount(() => {
+	function loadScript(src: string, integrity?: string): Promise<void> {
+		return new Promise((resolve, reject) => {
+			if (document.querySelector(`script[src="${src}"]`)) {
+				resolve();
+				return;
+			}
+			const s = document.createElement('script');
+			s.src = src;
+			s.crossOrigin = 'anonymous';
+			if (integrity) s.integrity = integrity;
+			s.onload = () => resolve();
+			s.onerror = reject;
+			document.head.appendChild(s);
+		});
+	}
+
+	onMount(async () => {
+		await loadScript(
+			'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
+			'sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo='
+		);
+		await loadScript(
+			'https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js'
+		);
+
 		initMap();
 		favorieten = getFavorieten();
 	});
@@ -434,13 +458,11 @@
 <svelte:head>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
-    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 
 </svelte:head>
+
 
 <div class="layout">
 	<!-- ── Sidebar ── -->
