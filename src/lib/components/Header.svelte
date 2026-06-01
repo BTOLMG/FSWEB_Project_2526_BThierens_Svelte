@@ -1,10 +1,14 @@
 <!-- Navbar -->
 
 <script>
+	import { goto, invalidateAll } from '$app/navigation';
+
 	let { user } = $props();
 	let menuOpen = $state(false);
 
+	// svelte-ignore state_referenced_locally
 	const href = user?.rol === 'actorbeheerder' ? '/account' : '/admin';
+	// svelte-ignore state_referenced_locally
 	const username = user?.email?.split('@')[0]?.split('.')[0] || 'User';
 
 	function toggleMenu() {
@@ -13,6 +17,14 @@
 
 	function closeMenu() {
 		menuOpen = false;
+	}
+
+	async function logout() {
+		const response = await fetch('/logout', { method: 'POST' });
+		if (response.ok) {
+			await invalidateAll();
+			goto('/login');
+		}
 	}
 </script>
 
@@ -76,9 +88,7 @@
 			</a>
 		</nav>
 		{#if user}
-			<form method="POST" action="/logout" class="logout-form">
-				<button type="submit" class="profile-btn uitloggen">UITLOGGEN</button>
-			</form>
+			<button onclick={logout} type="submit" class="profile-btn uitloggen">UITLOGGEN</button>
 		{/if}
 	</div>
 
@@ -224,11 +234,6 @@
 
 	.offcanvas nav {
 		flex-grow: 0.8;
-	}
-
-	.logout-form {
-		margin-top: auto;
-		width: 100%;
 	}
 
 	.profile-btn {

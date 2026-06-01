@@ -6,9 +6,9 @@ export async function load({ locals }) {
   if (!user) return { user: null };
 
   const { data: profile } = await locals.supabase
-    .from('users')
+    .from('gebruiker')
     .select('rol')
-    .eq('id', user.id)
+    .eq('uid', user.id)
     .single();
 
   return {

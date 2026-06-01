@@ -1,5 +1,198 @@
 <script lang="ts">
-    import type { PageProps } from './$types';
+	import type { ActionData } from './$types';
 
-    let { data }: PageProps = $props();
+	let { form }: { form: ActionData } = $props();
 </script>
+
+<div class="login-inner">
+	<div class="login-hero">
+		<h1>Welkom<br />terug.</h1>
+		<p>
+			Beheer de wegwijzer voor jongeren in Vlaanderen.<br />
+			Log in op je organisatie-account of admin-portaal.
+		</p>
+	</div>
+
+	<div class="login-card">
+		<form method="POST">
+			<div class="login-field">
+				<label for="email">Email</label>
+				<div class="input-wrap">
+					<input type="email" id="email" name="email" placeholder="naam@organisatie.be" required />
+					<i class="fa-regular fa-envelope input-icon"></i>
+				</div>
+			</div>
+
+			<div class="login-field">
+				<label for="password">Wachtwoord</label>
+				<div class="input-wrap">
+					<input type="password" id="password" name="password" placeholder="•••••••" required />
+					<i class="fa fa-lock input-icon"></i>
+				</div>
+			</div>
+
+			<button type="submit" class="btn-login"> INLOGGEN </button>
+
+			{#if form?.error}
+				<div class="login-error">{form.error}</div>
+			{/if}
+		</form>
+
+		<hr class="login-divider" />
+
+		<p class="login-signup">
+			Nog geen account voor je werking?
+			<a href="/contact">Nieuwe organisatie aanvragen?</a>
+		</p>
+	</div>
+</div>
+
+<style>
+	.login-inner {
+		position: relative;
+		z-index: 1;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		padding: 3rem 1rem 2rem;
+		flex: 1;
+		min-height: calc(100vh - 56px);
+		background-image: url('$lib/assets/login-img.png');
+		background-size: cover;
+		background-position: center;
+	}
+
+	.login-inner::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		background: rgba(255, 255, 255, 0.5);
+		z-index: -1;
+	}
+
+	.login-hero {
+		width: 100%;
+		max-width: 560px;
+		text-align: left;
+		margin-bottom: 1.5rem;
+	}
+
+	.login-hero h1 {
+		font-size: 50px;
+		font-weight: 700;
+		color: var(--primary-darkblue-color);
+		margin-bottom: 5px;
+	}
+
+	.login-hero p {
+		font-size: 15px;
+		color: var(--secondary-blue-text-color);
+	}
+
+	.login-card {
+		background: var(--primary-white-color);
+		border: 0.5px solid #e5e7eb;
+		border-radius: 16px;
+		padding: 2rem;
+		width: 100%;
+		max-width: 560px;
+	}
+
+	.login-field {
+		margin-bottom: 1rem;
+	}
+
+	.login-field label {
+		font-size: 15px;
+		font-weight: 500;
+		display: block;
+		margin-bottom: 5px;
+		color: var(--primary-dark-color);
+	}
+
+	.input-wrap {
+		position: relative;
+		display: flex;
+	}
+
+	.input-wrap input {
+		width: 100%;
+		padding: 15px 40px 15px 20px;
+		border: 0.5px solid #d1d5db;
+		border-radius: 8px;
+		font-size: 14px;
+		background: #f9fafb;
+		color: var(--primary-dark-color);
+		font-family: inherit;
+		transition: all 0.2s;
+		box-sizing: border-box;
+	}
+
+	.input-wrap input:focus {
+		outline: none;
+		border-color: var(--primary-blue-color);
+	}
+
+	.input-icon {
+		position: absolute;
+		right: 15px;
+		display: flex;
+		align-self: center;
+		color: #9ca3af;
+		font-size: 15px;
+	}
+
+	.btn-login {
+		width: 100%;
+		background: var(--primary-darkblue-color);
+		color: #fff;
+		border: none;
+		border-radius: 10px;
+		padding: 15px;
+		font-size: 15px;
+		font-weight: 600;
+		cursor: pointer;
+		transition: all 0.2s;
+		font-family: inherit;
+	}
+
+	.btn-login:hover:not(:disabled) {
+		background: var(--primary-lightdarkblue-color);
+	}
+
+	.btn-login:disabled {
+		opacity: 0.7;
+		cursor: not-allowed;
+	}
+
+	.login-error {
+		margin-top: 1rem;
+		padding: 10px;
+		border-radius: 5px;
+		background: var(--error-fail-bgcolor);
+		color: var(--error-fail-color);
+		font-size: 15px;
+	}
+
+	.login-divider {
+		border: none;
+		border-top: 0.5px solid #e5e7eb;
+		margin: 1.5rem 0;
+	}
+
+	.login-signup {
+		text-align: center;
+		font-size: 15px;
+		color: #6b7280;
+	}
+
+	.login-signup a {
+		color: var(--primary-blue-color);
+		text-decoration: none;
+		font-weight: 500;
+	}
+
+	.login-signup a:hover {
+		text-decoration: underline;
+	}
+</style>
