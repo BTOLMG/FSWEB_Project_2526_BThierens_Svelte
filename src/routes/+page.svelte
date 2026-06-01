@@ -128,7 +128,7 @@
 			class="card-groot"
 			title="Zie uw opgeslagen hulp"
 			description="Bekijk je bewaarde hulpmiddelen"
-			backgroundColor="var(--secondary-broken-white-color)"
+			backgroundColor="var(--secondary-lightyellow-color)"
 			icon="fa-solid fa-star"
 			titleColor="var(--primary-dark-color)"
 			iconColor="var(--primary-dark-color)"
