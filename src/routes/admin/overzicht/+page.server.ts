@@ -108,5 +108,22 @@ export const actions = {
 		}
 
 		return { statusMsg: "Organisatie succesvol verwijderd." };
-	}
+	},
+
+	deleteActor: async ({ request, locals }) => {
+        const formData = await request.formData();
+        const id = Number(formData.get('id'));
+        const naam = formData.get('naam') as string;
+
+        const { error } = await locals.supabase
+            .from('actor')
+            .delete()
+            .eq('id', id);
+
+        if (error) {
+            return fail(500, { message: 'Fout bij verwijderen: ' + error.message });
+        }
+
+        return { statusMsg: `Actor "${naam}" verwijderd.` };
+    }
 };

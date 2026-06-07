@@ -2,6 +2,9 @@
 	import { onMount, onDestroy } from 'svelte';
 	import type { PageData } from './$types';
 
+	import type L from 'leaflet';
+	import type {} from 'leaflet.markercluster';	
+
 	let { data }: { data: PageData } = $props();
 
 	let favorieten: number[] = $state([]);
@@ -10,7 +13,6 @@
 		id: number;
 		naam: string;
 		categorie: string | null;
-		beschrijving: string | null;
 		straatnaam: string | null;
 		huisnummer: string | null;
 		busnummer: string | null;
@@ -18,10 +20,6 @@
 		gemeente: string | null;
 		lat: number;
 		lon: number;
-		telefoon: string | null;
-		mail: string | null;
-		website: string | null;
-		openingsuren: { dag: string; start: string; eind: string }[];
 	};
 
 	const categorieConfig: Record<string, { kleur: string; icoon: string; badgeClass: string }> = {
@@ -29,10 +27,13 @@
 		'Gezondheid': { kleur: 'green',  icoon: 'fa-heart-pulse', badgeClass: 'badge-gezondheid' },
 	};
 
-	function getCatConfig(cat: string | null) {
-		return (cat && categorieConfig[cat]) ?? { kleur: 'blue', icoon: 'fa-location-dot', badgeClass: '' };
+	function getCatConfig(cat: string | null): { kleur: string; icoon: string; badgeClass: string } {
+		const standaard = { kleur: 'blue', icoon: 'fa-location-dot', badgeClass: '' };
+		if (!cat) return standaard;
+		return categorieConfig[cat] ?? standaard;
 	}
 
+	// svelte-ignore state_referenced_locally
 	const alleActoren: Actor[] = data.actoren;
 
 	let gefilterd = $state<Actor[]>(alleActoren);
@@ -59,7 +60,6 @@
 	let radiusCircle: L.Circle | null = null;
 	let radiusCenterMarker: L.Marker | null = null;
 	let cardListEl: HTMLDivElement;
-	let zoekTimeout: ReturnType<typeof setTimeout>;
 
 	let categorieënCount = $derived(
 		alleActoren.reduce<Record<string, number>>((acc, a) => {
@@ -118,6 +118,7 @@
 		return [straat, plaats].filter(Boolean).join(', ');
 	}
 
+	//https://www.geeksforgeeks.org/dsa/haversine-formula-to-find-distance-between-two-points-on-a-sphere/
 	function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number) {
 		const R = 6371;
 		const toRad = (d: number) => d * Math.PI / 180;
@@ -141,53 +142,8 @@
 			favorieten = favorieten.filter((id) => id !== actorId);
 		} else {
 			favorieten = [...favorieten, actorId];
-			spawnHeartsById(actorId);
 		}
 		saveFavorieten(favorieten);
-	}
-
-	function spawnHeartsById(actorId: number) {
-		const button = document.querySelector<HTMLElement>(`[data-id="${actorId}"]`);
-		if (button) spawnHearts(button);
-	}
-
-	function spawnHearts(button: HTMLElement) {
-		const count = Math.floor(Math.random() * 2) + 6;
-		for (let i = 0; i < count; i++) setTimeout(() => spawnHeart(button), i * 80);
-	}
-
-	function spawnHeart(button: HTMLElement) {
-		const rect = button.getBoundingClientRect();
-		const drift = (Math.random() - 0.5) * 120;
-		const duration = 600 + Math.random() * 600;
-		const size = 0.8 + Math.random() * 1.2;
-		const startRotate = (Math.random() - 0.5) * 30;
-		const endRotate = (Math.random() - 0.5) * 60;
-
-		const heart = document.createElement('span');
-		heart.innerHTML = '<i class="fa fa-heart"></i>';
-		heart.style.cssText = `
-			color: var(--primary-red-color);
-			position: fixed;
-			font-size: ${size}rem;
-			pointer-events: none;
-			z-index: 9999;
-			left: ${rect.left + rect.width / 2 - 12}px;
-			top: ${rect.top}px;
-		`;
-		document.body.appendChild(heart);
-		heart.animate(
-			[
-				{ transform: `translate(0,0) rotate(${startRotate}deg) scale(1)`, opacity: 1 },
-				{
-					transform: `translate(${drift}px,-90px) rotate(${endRotate}deg) scale(1.3)`,
-					opacity: 1,
-					offset: 0.45
-				},
-				{ transform: `translate(${drift}px,10px) rotate(${endRotate}deg) scale(0.7)`, opacity: 0 }
-			],
-			{ duration, easing: 'ease-out', fill: 'forwards' }
-		).onfinish = () => heart.remove();
 	}
 
 	function update() {
@@ -198,8 +154,7 @@
 			res = res.filter(a =>
 				a.naam?.toLowerCase().includes(z) ||
 				a.categorie?.toLowerCase().includes(z) ||
-				a.gemeente?.toLowerCase().includes(z) ||
-				a.beschrijving?.toLowerCase().includes(z)
+				a.gemeente?.toLowerCase().includes(z)
 			);
 		}
 
@@ -234,7 +189,10 @@
 		update();
 	}
 
-	async function initMap() {
+	//https://leafletjs.com/reference.html
+	//https://stackoverflow.com/questions/49333263/how-to-use-leaflet-markerclustergroup
+	//https://github.com/leaflet/leaflet.markercluster
+	async function initMap() {	
 		const L = (window as unknown as { L: typeof import('leaflet') }).L;
 
 		map = L.map('kaart-map', {
@@ -258,7 +216,6 @@
 				return L.divIcon({
 					html: `<div class="cluster-marker"><span>${count}</span></div>`,
 					className: '',
-					iconSize: [40, 40] as L.PointTuple,
 					iconAnchor: [20, 20] as L.PointTuple,
 				});
 			},
@@ -421,6 +378,7 @@
 		document.getElementById('kaart-map')?.classList.toggle('picking-center', pickingCenter);
 	}
 
+	// met behulp van AI want anders werkte de map pas na de 2de load
 	function loadScript(src: string, integrity?: string): Promise<void> {
 		return new Promise((resolve, reject) => {
 			if (document.querySelector(`script[src="${src}"]`)) {
@@ -461,6 +419,8 @@
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
 
+	<!-- <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="anonymous"></script>
+	<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script> -->
 </svelte:head>
 
 
@@ -485,7 +445,7 @@
 					placeholder="Zoek op naam, gemeente of thema…"
 					class="search-input"
 					bind:value={zoekterm}
-					oninput={() => { clearTimeout(zoekTimeout); zoekTimeout = setTimeout(update, 180); }}
+					oninput={() => { setTimeout(update, 200); }}
 				/>
 			</div>
 		</div>
@@ -623,6 +583,7 @@
 					{@const adres = formatAdres(actor)}
                     {@const isFavoriet = favorieten.includes(actor.id)}
 					{@const isActief = actieveId === actor.id}
+					<!-- svelte-ignore a11y_no_noninteractive_element_to_interactive_role -->
 					<article
 						class="card"
 						class:active={isActief}
@@ -643,9 +604,6 @@
 							</button>
 						</div>
 						<h3 class="card-name">{actor.naam}</h3>
-						{#if actor.beschrijving}
-							<p class="card-desc">{actor.beschrijving}</p>
-						{/if}
 						{#if adres}
 							<p class="card-address">
 								<i class="fa fa-location-dot"></i>{adres}
@@ -787,13 +745,13 @@
 		white-space: nowrap;
 	}
 
-	:global(.chip-gemeente) {
+	.chip-gemeente {
 		background-color: var(--secondary-lightyellow-color);
 		color: var(--secondary-darkyellow-color);
 		border-color: var(--secondary-yellow-color);
 	}
 
-	:global(.chip-radius) {
+	.chip-radius {
 		background-color: #dcfce7;
 		color: #166534;
 		border-color: #86efac;
@@ -1176,16 +1134,6 @@
 
 	.card:hover .card-name,
 	.card.active .card-name { color: var(--primary-blue-color); }
-
-	.card-desc {
-		font-size: 0.8rem;
-		color: var(--secondary-blue-text-color);
-		margin: 0;
-		display: -webkit-box;
-		-webkit-line-clamp: 2;
-		-webkit-box-orient: vertical;
-		overflow: hidden;
-	}
 
 	.card-address {
 		display: flex;

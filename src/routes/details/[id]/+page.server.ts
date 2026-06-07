@@ -1,10 +1,6 @@
-import { createClient } from '@supabase/supabase-js';
-import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_PUBLISHABLE_KEY } from '$env/static/public';
 import { error } from '@sveltejs/kit';
 
-export async function load({ params }) {
-	const supabase = createClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_PUBLISHABLE_KEY);
-
+export async function load({ params, locals: { supabase } }) {
 	const id = parseInt(params.id);
 	if (isNaN(id)) throw error(404, 'Ongeldig ID');
 	
@@ -38,7 +34,8 @@ export async function load({ params }) {
 
 	const actor = {
 		...data,
-		categorie: Array.isArray(data.categorie) ? (data.categorie[0] ?? null) : data.categorie
+		categorie: Array.isArray(data.categorie) ? (data.categorie[0] ?? null) : data.categorie,
+		actor_rubriek: (data.actor_rubriek as unknown as { rubriek: { naam: string } }[])
 	};
 
 	return { actor };

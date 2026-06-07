@@ -32,7 +32,7 @@
 		if (favorieten.includes(actorId)) {
 			favorieten = favorieten.filter((id) => id !== actorId);
 		} else {
-			favorieten = [...favorieten, actorId];
+			favorieten = [...favorieten, actorId];	
 			spawnHeartsById(actorId);
 		}
 		saveFavorieten(favorieten);
@@ -48,6 +48,8 @@
 		for (let i = 0; i < count; i++) setTimeout(() => spawnHeart(button), i * 80);
 	}
 
+	// https://codepen.io/yukos/pen/ByNqVvG
+	// maar dan geanimeerd zodat de vliegen omhoog en dan vallen naar beneden
 	function spawnHeart(button: HTMLElement) {
 		const rect = button.getBoundingClientRect();
 		const drift = (Math.random() - 0.5) * 120;
@@ -135,6 +137,7 @@
 	}
 
 	const hasFilters =
+		// svelte-ignore state_referenced_locally
 		(data.meta.selectedGemeentes?.length ?? 0) > 0 ||
 		(data.meta.selectedRubrieken?.length ?? 0) > 0;
 
@@ -150,12 +153,12 @@
 <div class="margin-side">
 	<div class="search-banner">
 		<h1>Hulp in jouw buurt</h1>
-		{#if data.meta.zoekterm == null}
+		{#if data.searchTerm == null}
 			<p>We vonden {data.results.length} resultaten</p>
 		{:else if data.results.length > 0}
-			<p>We vonden {data.results.length} resultaten voor "<strong>{data.meta.zoekterm}</strong>"</p>
+			<p>We vonden {data.results.length} resultaten voor "<strong>{data.searchTerm}</strong>"</p>
 		{:else}
-			<p>We vonden geen resultaten voor "<strong>{data.meta.zoekterm}</strong>"</p>
+			<p>We vonden geen resultaten voor "<strong>{data.searchTerm}</strong>"</p>
 		{/if}
 	</div>
 
@@ -175,7 +178,7 @@
 						bind:value={inputValue}
 						id="input-box"
 						name="zoekterm"
-						placeholder={data.meta.zoekterm ?? 'Geef een zoekterm in'}
+						placeholder={data.searchTerm ?? 'Geef een zoekterm in'}
 						onkeydown={handleKeyDown}
 					></textarea>
 
@@ -216,7 +219,7 @@
 					<span class="filter-title">Resultaten filteren</span>
 					{#if hasFilters}
 						<a
-							href="/search{data.meta.zoekterm ? `?zoekterm=${data.meta.zoekterm}` : ''}"
+							href="/search{data.searchTerm ? `?zoekterm=${data.searchTerm}` : ''}"
 							class="filters-clear"
 						>
 							Filters wissen

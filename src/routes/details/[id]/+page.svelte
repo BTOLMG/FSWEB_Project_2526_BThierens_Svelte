@@ -3,14 +3,13 @@
 	import { onMount } from 'svelte';
 
 	let { data }: { data: PageData } = $props();
+	// svelte-ignore state_referenced_locally
 	const actor = data.actor;
 
 	const DAGEN = ['maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag', 'zondag'];
 
 	function getUur(dag: string) {
-		return actor.openingsuren?.find(
-			(u: { dag_van_de_week: string }) => u.dag_van_de_week === dag
-		);
+		return actor.openingsuren?.find((u: { dag_van_de_week: string }) => u.dag_van_de_week === dag);
 	}
 
 	function isOpen(dag: string) {
@@ -55,7 +54,6 @@
 		.filter(Boolean)
 		.join(', ');
 
-	// ── Favourites ────────────────────────────────────────────────────
 	let isFavoriet = $state(false);
 
 	function getFavorieten(): number[] {
@@ -107,7 +105,11 @@
 		heart.animate(
 			[
 				{ transform: `translate(0,0) rotate(${startRotate}deg) scale(1)`, opacity: 1 },
-				{ transform: `translate(${drift}px,-90px) rotate(${endRotate}deg) scale(1.3)`, opacity: 1, offset: 0.45 },
+				{
+					transform: `translate(${drift}px,-90px) rotate(${endRotate}deg) scale(1.3)`,
+					opacity: 1,
+					offset: 0.45
+				},
 				{ transform: `translate(${drift}px,10px) rotate(${endRotate}deg) scale(0.7)`, opacity: 0 }
 			],
 			{ duration, easing: 'ease-out', fill: 'forwards' }
@@ -115,7 +117,6 @@
 	}
 </script>
 
-<!-- ── Banner ── -->
 <div class="banner">
 	<div class="spacer-from-side">
 		{#if actor.categorie}
@@ -153,10 +154,7 @@
 	</div>
 </div>
 
-<!-- ── Body ── -->
 <div class="details-body spacer-from-side">
-
-	<!-- Contact -->
 	<div class="details-card card-contact">
 		<h2>Contactgegevens</h2>
 		<hr class="small-yellow-line card-line" />
@@ -180,11 +178,12 @@
 				</div>
 			{/each}
 		{:else}
-			<p class="details-empty"><i class="fa fa-info-circle"></i> Geen contactgegevens beschikbaar.</p>
+			<p class="details-empty">
+				<i class="fa fa-info-circle"></i> Geen contactgegevens beschikbaar.
+			</p>
 		{/if}
 	</div>
 
-	<!-- Betaalwijze -->
 	<div class="details-card card-betaal">
 		<h2>Betaalwijze</h2>
 		<hr class="small-yellow-line card-line" />
@@ -198,7 +197,6 @@
 		{/if}
 	</div>
 
-	<!-- Openingsuren -->
 	<div class="details-card card-uren">
 		<h2>Openingsuren</h2>
 		<hr class="small-yellow-line card-line" />
@@ -212,7 +210,7 @@
 						<span class="uur-tijd">
 							{#if open}
 								<i class="fa fa-clock"></i>
-								{uur.startuur.slice(0, 5)} - {uur.einduur.slice(0, 5)}
+								{uur?.startuur.slice(0, 5)} - {uur?.einduur.slice(0, 5)}
 							{:else}
 								<i class="fa fa-times"></i>
 								Gesloten
@@ -226,7 +224,6 @@
 		{/if}
 	</div>
 
-	<!-- Locatie -->
 	<div class="details-card card-locatie">
 		<h2>Locatie</h2>
 		<hr class="small-yellow-line card-line" />
@@ -234,7 +231,9 @@
 			<div class="info-item">
 				<span class="info-label"><i class="fa fa-road"></i> Straat</span>
 				<span class="info-value">
-					{[actor.straatnaam, actor.huisnummer, actor.busnummer ? `bus ${actor.busnummer}` : ''].filter(Boolean).join(' ') || '—'}
+					{[actor.straatnaam, actor.huisnummer, actor.busnummer ? `bus ${actor.busnummer}` : '']
+						.filter(Boolean)
+						.join(' ') || '—'}
 				</span>
 			</div>
 			<div class="info-item">
@@ -248,7 +247,6 @@
 		</div>
 	</div>
 
-	<!-- Doelgroep -->
 	<div class="details-card card-doelgroep">
 		<h2>Doelgroep</h2>
 		<hr class="small-yellow-line card-line" />
@@ -281,7 +279,6 @@
 		</div>
 	</div>
 
-	<!-- Rubrieken -->
 	{#if actor.actor_rubriek?.length}
 		<div class="details-card card-rubrieken">
 			<h2>Rubrieken</h2>
@@ -299,9 +296,12 @@
 </div>
 
 <style>
-	/* ── Banner ── */
 	.banner {
-		background: linear-gradient(to left, var(--primary-blue-color), var(--primary-lightdarkblue-color));
+		background: linear-gradient(
+			to left,
+			var(--primary-blue-color),
+			var(--primary-lightdarkblue-color)
+		);
 		color: var(--primary-white-color);
 		min-height: 50vh;
 		width: auto;
@@ -400,10 +400,10 @@
 		margin-bottom: 40px;
 	}
 
-	/* ── Body grid ── */
 	.details-body {
 		display: grid;
 		grid-template-columns: 1fr 1fr 1fr;
+		grid-template-rows: auto auto auto auto;
 		grid-template-areas:
 			'contact   contact   betaal'
 			'uren      locatie   locatie'
@@ -415,18 +415,31 @@
 		padding: 30px 20px 60px;
 	}
 
-	.card-contact  { grid-area: contact; }
-	.card-betaal   { grid-area: betaal; }
-	.card-uren     { grid-area: uren; }
-	.card-locatie  { grid-area: locatie; }
-	.card-doelgroep { grid-area: doelgroep; }
-	.card-rubrieken { grid-area: rubrieken; }
+	.card-contact {
+		grid-area: contact;
+	}
+	.card-betaal {
+		grid-area: betaal;
+	}
+	.card-uren {
+		grid-area: uren;
+	}
+	.card-locatie {
+		grid-area: locatie;
+	}
+	.card-doelgroep {
+		grid-area: doelgroep;
+	}
+	.card-rubrieken {
+		grid-area: rubrieken;
+	}
 
 	.details-card {
 		background: var(--primary-white-color);
 		border: 0.5px solid var(--secondary-border-blur-color);
 		border-radius: 15px;
 		padding: 25px 30px;
+		height: calc(100% - 50px);
 	}
 
 	.details-card h2 {
@@ -445,7 +458,6 @@
 		gap: 5px;
 	}
 
-	/* Contact */
 	.contact-item {
 		display: flex;
 		align-items: center;
@@ -494,7 +506,6 @@
 		color: var(--primary-blue-color);
 	}
 
-	/* Betaal */
 	.betaal-badge {
 		display: inline-flex;
 		align-items: center;
@@ -512,7 +523,6 @@
 		color: var(--primary-blue-color);
 	}
 
-	/* Openingsuren */
 	.uren-lijst {
 		display: flex;
 		flex-direction: column;
@@ -553,10 +563,13 @@
 		font-style: italic;
 	}
 
-	.uur-gesloten .uur-tijd :global(i) { color: #fca5a5; }
-	.uur-rij:not(.uur-gesloten) .uur-tijd :global(i) { color: #16a34a; }
+	.uur-gesloten .uur-tijd :global(i) {
+		color: #fca5a5;
+	}
+	.uur-rij:not(.uur-gesloten) .uur-tijd :global(i) {
+		color: #16a34a;
+	}
 
-	/* Info grid */
 	.info-grid {
 		display: flex;
 		flex-direction: column;
@@ -592,7 +605,6 @@
 		padding-left: 20px;
 	}
 
-	/* Rubrieken */
 	.rubriek-tags {
 		display: flex;
 		flex-wrap: wrap;
@@ -616,10 +628,13 @@
 		font-size: 10px;
 	}
 
-	/* ── Responsive ── */
 	@media screen and (max-width: 850px) {
-		.banner { min-height: 40vh; }
-		.banner h1 { font-size: 2.5rem; }
+		.banner {
+			min-height: 40vh;
+		}
+		.banner h1 {
+			font-size: 2.5rem;
+		}
 
 		.details-body {
 			grid-template-columns: 1fr 1fr;
@@ -635,8 +650,13 @@
 	}
 
 	@media screen and (max-width: 550px) {
-		.banner { min-height: 30vh; }
-		.banner h1 { font-size: 6vw; padding: 20px; }
+		.banner {
+			min-height: 30vh;
+		}
+		.banner h1 {
+			font-size: 6vw;
+			padding: 20px;
+		}
 
 		.details-body {
 			grid-template-columns: 1fr;

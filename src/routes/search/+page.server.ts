@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_PUBLISHABLE_KEY } from '$env/static/public';
 
+// Met AI want wist niet wat een goede manier was om de data uit supabase naar bruikbare data te krijgen
 interface ActorRaw {
 	id: number;
 	publieke_naam: string;
@@ -118,6 +119,8 @@ export async function load({ url }) {
 		}
 	});
 
+	//https://stackoverflow.com/questions/33089695/how-can-i-sort-an-es6-set
+	// -> zet een set om naar een array
 	const gemeenteAccordionItems: Record<string, number> = {};
 	[...new Set(alle.filter((a) => a.gemeente).map(gemeenteLabel))]
 		.sort()
@@ -148,7 +151,6 @@ export async function load({ url }) {
 		gemeenteAccordionItems,
 		rubriekAccordionItems,
 		meta: {
-			zoekterm: searchTerm || null,
 			selectedGemeentes,
 			selectedRubrieken
 		}

@@ -85,23 +85,23 @@
 		return data.alleRubrieken.find((r: { id: string }) => r.id === id)?.naam ?? id;
 	}
 
+	//https://www.youtube.com/watch?v=vOPr5k_SGVA
 	async function geocode() {
 		geoLoading = true;
 		geoStatus = 'Coördinaten ophalen…';
 		const query = [straatnaam, huisnummer, postcode, gemeente, 'België'].filter(Boolean).join(', ');
 		try {
-			const res = await fetch(
-				`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query)}`,
-				{ headers: { 'Accept-Language': 'nl', 'User-Agent': 'ActorBeheerApp/1.0' } }
-			);
-			const data = await res.json();
-			if (data.length === 0) {
-				geoStatus = 'Adres niet gevonden.';
-			} else {
-				lat = parseFloat(data[0].lat).toFixed(6);
-				lon = parseFloat(data[0].lon).toFixed(6);
-				geoStatus = `${data[0].display_name.split(',').slice(0, 3).join(',')}`;
-			}
+			fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`)
+				.then(data => data.json())
+				.then(data => {
+					if (data.length === 0) {
+						geoStatus = 'Adres niet gevonden.';
+					} else {
+						lat = parseFloat(data[0].lat).toFixed(6);
+						lon = parseFloat(data[0].lon).toFixed(6);
+						geoStatus = `${data[0].display_name.split(',').slice(0, 3).join(',') + ', ' + data[0].display_name.split(',').slice(7, 8)}`;
+					}
+				});			
 		} catch {
 			geoStatus = 'Verbindingsfout.';
 		}

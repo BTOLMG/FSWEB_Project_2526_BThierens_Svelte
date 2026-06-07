@@ -1,14 +1,11 @@
 <script lang="ts">
 	import { goto, invalidateAll } from '$app/navigation';
-	import { createClient } from '@supabase/supabase-js';
-	import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_PUBLISHABLE_KEY } from '$env/static/public';
+	import { enhance } from '$app/forms';
 
 	let { data, form } = $props();
-	const supabase = createClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_PUBLISHABLE_KEY);
 
 	let actorZoek = $state('');
 	let userZoek = $state('');
-	let statusMsg = $state('');
 
 	const filteredActoren = $derived(
 		actorZoek.trim()
@@ -33,22 +30,6 @@
 			: data.users
 	);
 
-	async function deleteActor(id: number, naam: string) {
-		if (
-			!confirm(
-				`Ben je zeker dat je "${naam}" wil verwijderen? Dit kan niet ongedaan worden gemaakt.`
-			)
-		)
-			return;
-		const { error } = await supabase.from('actor').delete().eq('id', id);
-		if (error) {
-			alert('Fout: ' + error.message);
-			return;
-		}
-		statusMsg = `Actor "${naam}" verwijderd.`;
-		await invalidateAll();
-	}
-
 	async function logout() {
 		const response = await fetch('/logout', { method: 'POST' });
 		if (response.ok) {
@@ -69,10 +50,10 @@
 			</a>
 		</div>
 
-		{#if statusMsg || form?.statusMsg}
+		{#if form?.statusMsg}
 			<div class="alert alert-success">
 				<i class="fa fa-circle-check"></i>
-				{form?.statusMsg ?? statusMsg}
+				{form?.statusMsg}
 			</div>
 		{/if}
 
@@ -122,22 +103,36 @@
 							</div>
 						</div>
 						<div class="overzicht-item-acties">
-							<a
-								href="/details/{actor.id}"
-								class="overzicht-btn-view"
-								target="_blank"
-								title="Bekijk detailpagina"
-							>
+							<!-- svelte-ignore a11y_consider_explicit_label -->
+							<a href="/details/{actor.id}" class="overzicht-btn-view" target="_blank">
 								<i class="fa fa-arrow-up-right-from-square"></i>
 							</a>
-							<button
-								type="button"
-								class="overzicht-btn-delete"
-								title="Verwijder actor"
-								onclick={() => deleteActor(actor.id, actor.naam)}
+
+							<form
+								method="POST"
+								action="?/deleteActor"
+								use:enhance={() => {
+									return async ({ update }) => {
+										await update();
+										await invalidateAll();
+									};
+								}}
 							>
-								<i class="fa fa-trash"></i>
-							</button>
+								<input type="hidden" name="id" value={actor.id} />
+								<input type="hidden" name="naam" value={actor.naam} />
+								<button
+									type="submit"
+									class="overzicht-btn-delete"
+									title="Verwijder actor"
+									onclick={(e) => {
+										if (!confirm(`Ben je zeker dat je "${actor.naam}" wil verwijderen?`)) {
+											e.preventDefault();
+										}
+									}}
+								>
+									<i class="fa fa-trash"></i>
+								</button>
+							</form>
 						</div>
 					</li>
 				{:else}

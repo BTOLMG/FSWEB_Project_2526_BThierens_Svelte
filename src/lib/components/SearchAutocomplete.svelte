@@ -16,7 +16,6 @@
 
 	onMount(async () => {
 		try {
-			console.log('Initializing Supabase client and fetching keywords');
 			const supabase = createClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_PUBLISHABLE_KEY);
 
 			const [{ data: actoren }, { data: rubrieken }, { data: categorieen }] = await Promise.all([
@@ -24,13 +23,13 @@
 				supabase.from('rubriek').select('naam'),
 				supabase.from('categorie').select('naam')
 			]);
-			console.log('Fetched keywords:', { actoren, rubrieken, categorieen });
+			
 			const names = (actoren ?? []).map((a: { publieke_naam: string }) => a.publieke_naam);
 			const rubriekNames = (rubrieken ?? []).map((r: { naam: string }) => r.naam);
 			const categorieNames = (categorieen ?? []).map((c: { naam: string }) => c.naam);
 
 			keywords = [...new Set([...names, ...rubriekNames, ...categorieNames])];
-			console.log('Processed keywords:', keywords);
+			
 			searchWrapper = document.querySelector('.search-wrapper');
 		} catch (error) {
 			console.error('Failed to fetch keywords:', error);
@@ -67,9 +66,17 @@
 	}
 
 	function highlightMatch(text: string, searchTerm: string): string {
-		const escaped = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-		const regex = new RegExp(`(${escaped})`, 'gi');
-		return text.replace(regex, '<b>$1</b>');
+		const lowerText = text.toLowerCase();
+		const lowerSearch = searchTerm.toLowerCase();
+		const index = lowerText.indexOf(lowerSearch);
+
+		if (index === -1) return text;
+
+		return (
+			text.slice(0, index) +
+			'<b>' + text.slice(index, index + searchTerm.length) + '</b>' +
+			text.slice(index + searchTerm.length)
+		);
 	}
 </script>
 
