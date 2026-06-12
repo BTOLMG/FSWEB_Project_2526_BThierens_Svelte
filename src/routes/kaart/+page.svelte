@@ -81,32 +81,45 @@
 			.filter(([n]) => n.toLowerCase().includes(gemeenteZoekterm.toLowerCase()))
 	);
 
-	let chips = $derived([
-		...[...actieveCategories].map(c => ({
-			label: c,
-			cls: '',
-			remove: () => {
-				const ns = new Set(actieveCategories);
-				ns.delete(c);
-				actieveCategories = ns;
-				update();
-			}
-		})),
-		...[...actieveGemeentes].map(g => ({
-			label: g,
-			cls: 'chip-gemeente',
-			remove: () => {
-				const ns = new Set(actieveGemeentes);
-				ns.delete(g);
-				actieveGemeentes = ns;
-				update();
-			}
-		})),
-		...(radiusCenter && radiusKmWaarde
-			? [{ label: `${radiusKmWaarde} km straal`, cls: 'chip-radius', remove: clearRadius }]
-			: []
-		),
-	]);
+	let chips = $derived.by(() => {
+		const lijst = [];
+
+		for (const c of actieveCategories) {
+			lijst.push({
+				label: c,
+				cls: '',
+				remove: () => {
+					const ns = new Set(actieveCategories);
+					ns.delete(c);
+					actieveCategories = ns;
+					update();
+				}
+			});
+		}
+
+		for (const g of actieveGemeentes) {
+			lijst.push({
+				label: g,
+				cls: 'chip-gemeente',
+				remove: () => {
+					const ns = new Set(actieveGemeentes);
+					ns.delete(g);
+					actieveGemeentes = ns;
+					update();
+				}
+			});
+		}
+
+		if (radiusCenter && radiusKmWaarde) {
+			lijst.push({
+				label: `${radiusKmWaarde} km straal`,
+				cls: 'chip-radius',
+				remove: clearRadius
+			});
+		}
+
+		return lijst;
+	});
 
 	function formatAdres(a: Actor) {
 		const straat = a.straatnaam
@@ -141,7 +154,7 @@
 		if (favorieten.includes(actorId)) {
 			favorieten = favorieten.filter((id) => id !== actorId);
 		} else {
-			favorieten = [...favorieten, actorId];
+			favorieten.push(actorId);
 		}
 		saveFavorieten(favorieten);
 	}
@@ -234,7 +247,6 @@
 			if (actieveId !== null) {
 				deactiveerMarkerEl(actieveId);
 				actieveId = null;
-				gefilterd = [...gefilterd];
 			}
 		});
 
@@ -284,7 +296,6 @@
 	function activeerActor(id: number, bron: 'card' | 'marker') {
 		if (actieveId !== null) deactiveerMarkerEl(actieveId);
 		actieveId = id;
-		gefilterd = [...gefilterd];
 
 		const marker = markers[id];
 		if (marker) {

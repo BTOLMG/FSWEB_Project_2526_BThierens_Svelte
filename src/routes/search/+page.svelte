@@ -32,7 +32,7 @@
 		if (favorieten.includes(actorId)) {
 			favorieten = favorieten.filter((id) => id !== actorId);
 		} else {
-			favorieten = [...favorieten, actorId];	
+			favorieten.push(actorId);
 			spawnHeartsById(actorId);
 		}
 		saveFavorieten(favorieten);
@@ -142,11 +142,16 @@
 		(data.meta.selectedRubrieken?.length ?? 0) > 0;
 
 	function formatAdres(actor: (typeof data.results)[0]): string {
-		const straat = [actor.straatnaam, actor.huisnummer, actor.busnummer]
-			.filter(Boolean)
-			.join(' ');
-		const plaats = [actor.postcode, actor.gemeente].filter(Boolean).join(' ');
-		return [straat, plaats].filter(Boolean).join(', ');
+		let straat = "";
+		if (actor.straatnaam) straat += " " + actor.straatnaam;
+		if (actor.huisnummer) straat += " " + actor.huisnummer;
+		if (actor.busnummer) straat  += " " + actor.busnummer;
+
+		let plaats = "";
+		if (actor.postcode) plaats += " " + actor.postcode;
+		if (actor.gemeente) plaats += " " + actor.gemeente;
+
+		return `${straat}, ${plaats}`;
 	}
 </script>
 

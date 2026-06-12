@@ -19,32 +19,41 @@ export async function load({ locals, parent }) {
 		.neq('rol', 'administrator')
 		.order('id');
 
-	const contactPersonUids = (actorenRaw ?? [])
-		.flatMap((a: any) => Array.isArray(a.contactpersoon) ? a.contactpersoon.map((cp: any) => cp.uid) : (a.contactpersoon?.uid ? [a.contactpersoon.uid] : []))
-		.filter((uid: any) => uid);
+	const allUids = new Set<string>();
 
-	const userUids = (usersRaw ?? []).map((u: any) => u.uid).filter(Boolean);
-	const allUids = [...new Set([...contactPersonUids, ...userUids])];
+	for (const actor of actorenRaw ?? []) {
+		const contactpersonen = Array.isArray(actor.contactpersoon)
+			? actor.contactpersoon
+			: actor.contactpersoon
+			? [actor.contactpersoon]
+			: [];
 
-	let authUsersMap = new Map();
-	if (allUids.length > 0) {
-		try {
-			const { data, error } = await adminClient.auth.admin.listUsers();
-			if (error) {
-				console.error('Error fetching auth users:', error);
-			} else {
-				authUsersMap = new Map(
-					(data?.users ?? [])
-						.filter((u: any) => allUids.includes(u.id))
-						.map((u: any) => [u.id, u.email])
-				);
-			}
-		} catch (err) {
-			console.error('Error accessing auth admin:', err);
+		for (const contactpersoon of contactpersonen) {
+			if (contactpersoon.uid) allUids.add(contactpersoon.uid);
 		}
 	}
 
-	const authUsersMapForUsers = authUsersMap;
+	for (const user of usersRaw ?? []) {
+		if (user.uid) allUids.add(user.uid);
+	}
+
+	let authUsersMap = new Map<string, string>();
+	if (allUids.size > 0) {
+		try {
+			const { data, error } = await adminClient.auth.admin.listUsers();
+			if (error) {
+				console.error('Error ophalen auth users:', error);
+			} else {
+				for (const u of data?.users ?? []) {
+					if (allUids.has(u.id)) {
+						authUsersMap.set(u.id, u.email?.toString() ?? '');
+					}
+				}
+			}
+		} catch (err) {
+			console.error('Error ophalen auth admin:', err);
+		}
+	}
 
 	const actoren = (actorenRaw ?? []).map((a: any) => ({
 		id: a.id,
@@ -63,7 +72,7 @@ export async function load({ locals, parent }) {
 
 	const users = (usersRaw ?? []).map((u: any) => ({
 		id: u.id,
-		email: authUsersMapForUsers.get(u.uid) ?? '',
+		email: authUsersMap.get(u.uid) ?? '',
 		rol: u.rol,
 		actoren: (actorUsers ?? [])
 			.filter((a: any) => a.contactpersoon_gebruiker_id === u.id)
@@ -103,7 +112,7 @@ export const actions = {
 			await adminClient.auth.admin.deleteUser(gebruiker.uid);
 
 		if (authError) {
-			console.error(authError);
+			console.error('Error ophalen auth admin:', authError);
 			return fail(500, { message: authError.message });
 		}
 
@@ -111,19 +120,19 @@ export const actions = {
 	},
 
 	deleteActor: async ({ request, locals }) => {
-        const formData = await request.formData();
-        const id = Number(formData.get('id'));
-        const naam = formData.get('naam') as string;
+		const formData = await request.formData();
+		const id = Number(formData.get('id'));
+		const naam = formData.get('naam') as string;
 
-        const { error } = await locals.supabase
-            .from('actor')
-            .delete()
-            .eq('id', id);
+		const { error } = await locals.supabase
+			.from('actor')
+			.delete()
+			.eq('id', id);
 
-        if (error) {
-            return fail(500, { message: 'Fout bij verwijderen: ' + error.message });
-        }
+		if (error) {
+			return fail(500, { message: 'Fout bij verwijderen: ' + error.message });
+		}
 
-        return { statusMsg: `Actor "${naam}" verwijderd.` };
-    }
+		return { statusMsg: `Actor "${naam}" verwijderd.` };
+	}
 };

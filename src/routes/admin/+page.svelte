@@ -33,16 +33,11 @@
 				email = '';
 				password = '';
 				passwordConfirm = '';
-			} else if (result.data?.error) {
-				errors = [result.data.error];
-			} else if (result.error) {
-				errors = [result.error];
 			} else {
 				errors = ['Er is een fout opgetreden: ' + JSON.stringify(result)];
 			}
 		} catch (error) {
-			const msg = error instanceof Error ? error.message : String(error);
-			errors = ['Fout bij communicatie: ' + msg];
+			errors = ['Er is iets mis gegaan: ' + error];
 			console.error('Error:', error);
 		} finally {
 			saving = false;

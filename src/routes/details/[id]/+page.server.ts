@@ -4,7 +4,7 @@ export async function load({ params, locals: { supabase } }) {
 	const id = parseInt(params.id);
 	if (isNaN(id)) throw error(404, 'Ongeldig ID');
 	
-	const { data, error: dbError } = await supabase
+	const { data: actor, error: dbError } = await supabase
 	
 		.from('actor')
 		.select(`
@@ -28,15 +28,9 @@ export async function load({ params, locals: { supabase } }) {
 		.eq('id', id)
 		.single();
 
-	if (dbError || !data) {
+	if (dbError || !actor) {
 		throw error(404, 'Actor niet gevonden');
 	}
 
-	const actor = {
-		...data,
-		categorie: Array.isArray(data.categorie) ? (data.categorie[0] ?? null) : data.categorie,
-		actor_rubriek: (data.actor_rubriek as unknown as { rubriek: { naam: string } }[])
-	};
-
-	return { actor };
+	return { actor};
 }

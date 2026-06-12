@@ -1,5 +1,4 @@
 <script lang="ts">
-
 	import { onMount } from 'svelte';
 	import { createClient } from '@supabase/supabase-js';
 	import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_PUBLISHABLE_KEY } from '$env/static/public';
@@ -18,39 +17,48 @@
 		try {
 			const supabase = createClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_PUBLISHABLE_KEY);
 
-			const [{ data: actoren }, { data: rubrieken }, { data: categorieen }] = await Promise.all([
-				supabase.from('actor').select('publieke_naam').eq('isVisible', true),
-				supabase.from('rubriek').select('naam'),
-				supabase.from('categorie').select('naam')
-			]);
-			
-			const names = (actoren ?? []).map((a: { publieke_naam: string }) => a.publieke_naam);
-			const rubriekNames = (rubrieken ?? []).map((r: { naam: string }) => r.naam);
-			const categorieNames = (categorieen ?? []).map((c: { naam: string }) => c.naam);
+			const [{ data: actoren }, { data: diensten }, { data: rubrieken }, { data: categorieen }] =
+				await Promise.all([
+					supabase.from('actor').select('publieke_naam').eq('isVisible', true),
+					supabase.from('actor').select('aangeboden_diensten').eq('isVisible', true),
+					supabase.from('rubriek').select('naam'),
+					supabase.from('categorie').select('naam')
+				]);
 
-			keywords = [...new Set([...names, ...rubriekNames, ...categorieNames])];
-			
+			const keywordsSet = new Set<string>();
+
+			for (const a of actoren ?? []) keywordsSet.add(a.publieke_naam);
+			for (const a of diensten ?? []) keywordsSet.add(a.aangeboden_diensten);
+			for (const r of rubrieken ?? []) keywordsSet.add(r.naam);
+			for (const c of categorieen ?? []) keywordsSet.add(c.naam);
+
+			keywords = Array.from(keywordsSet);
+
 			searchWrapper = document.querySelector('.search-wrapper');
 		} catch (error) {
-			console.error('Failed to fetch keywords:', error);
+			console.error('mislukt om de keywords op te halen:', error);
 		}
 	});
 
 	let results: { name: string; relevance: number }[] = $derived(
 		inputValue.length === 0
 			? []
-			: keywords
-				.map((item) => {
-					const lowerItem = item.toLowerCase();
+			: (() => {
 					const input = inputValue.trim().toLowerCase();
-					let score = 0;
-					if (lowerItem.startsWith(input)) score += 2;
-					else if (lowerItem.includes(input)) score += 1;
-					return { name: item, relevance: score };
-				})
-				.filter((item) => item.relevance > 0)
-				.sort((a, b) => b.relevance - a.relevance)
-				.slice(0, 15)
+					const scored: { name: string; relevance: number }[] = [];
+
+					for (const item of keywords) {
+						const lowerItem = item.toLowerCase();
+						let score = 0;
+						if (lowerItem.startsWith(input)) score += 2;
+						else if (lowerItem.includes(input)) score += 1;
+						if (score > 0) scored.push({ name: item, relevance: score });
+					}
+
+					scored.sort((a, b) => b.relevance - a.relevance);
+
+					return scored.slice(0, 15);
+				})()
 	);
 
 	$effect(() => {
@@ -61,7 +69,6 @@
 
 	function selectResult(item: string) {
 		inputValue = item;
-		results = [];
 		searchWrapper?.classList.remove('no-box-shadow');
 	}
 

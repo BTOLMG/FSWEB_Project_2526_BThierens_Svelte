@@ -26,10 +26,7 @@ export async function load({ locals, parent }) {
 		.order('naam');
 
 	return {
-		actoren: (actoren ?? []).map((a) => ({
-			...a,
-			categorie: Array.isArray(a.categorie) ? (a.categorie[0] ?? null) : a.categorie
-		})),
+		actoren: actoren ?? [],
 		categorieen: categorieen ?? [],
 		gebruikerId: gebruiker.id
 	};

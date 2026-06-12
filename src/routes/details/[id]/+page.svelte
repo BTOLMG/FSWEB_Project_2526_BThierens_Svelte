@@ -74,16 +74,16 @@
 
 	function toggleFavoriet(e: MouseEvent) {
 		const btn = e.currentTarget as HTMLElement;
-		let favs = getFavorieten();
+		let favorieten = getFavorieten();
 		if (isFavoriet) {
-			favs = favs.filter((id) => id !== actor.id);
+			favorieten = favorieten.filter((id) => id !== actor.id);
 			isFavoriet = false;
 		} else {
-			favs = [...favs, actor.id];
+			favorieten.push(actor.id);
 			isFavoriet = true;
 			spawnHearts(btn);
 		}
-		saveFavorieten(favs);
+		saveFavorieten(favorieten);
 	}
 
 	function spawnHearts(button: HTMLElement) {

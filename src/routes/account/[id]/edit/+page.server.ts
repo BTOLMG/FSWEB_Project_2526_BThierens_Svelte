@@ -44,13 +44,8 @@ export async function load({ locals, params, parent }) {
 		.order('level')
 		.order('naam');
 
-	const normalized = {
-		...actor,
-		categorie: Array.isArray(actor.categorie) ? (actor.categorie[0] ?? null) : actor.categorie
-	};
-
 	return {
-		actor: normalized,
+		actor: actor,
 		alleRubrieken: alleRubrieken ?? [],
 		gekoppeldeIds: actor.actor_rubriek.map((ar: { rubriek_id: string }) => ar.rubriek_id),
 		user: { email: user.email, id: gebruiker.id }

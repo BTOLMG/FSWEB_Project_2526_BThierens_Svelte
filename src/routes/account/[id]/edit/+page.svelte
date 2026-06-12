@@ -30,7 +30,7 @@
 	let passwordConfirm = $state('');
 
 	// svelte-ignore state_referenced_locally
-	let geselecteerdeRubrieken = $state<string[]>([...data.gekoppeldeIds]);
+	let geselecteerdeRubrieken = $state<string[]>(data.gekoppeldeIds.slice());
 	let rubriekDropdownOpen = $state(false);
 	let rubriekZoek = $state('');
 
@@ -73,7 +73,7 @@
 		if (geselecteerdeRubrieken.includes(id)) {
 			geselecteerdeRubrieken = geselecteerdeRubrieken.filter((r) => r !== id);
 		} else {
-			geselecteerdeRubrieken = [...geselecteerdeRubrieken, id];
+			geselecteerdeRubrieken.push(id);
 		}
 	}
 
@@ -99,7 +99,9 @@
 					} else {
 						lat = parseFloat(data[0].lat).toFixed(6);
 						lon = parseFloat(data[0].lon).toFixed(6);
-						geoStatus = `${data[0].display_name.split(',').slice(0, 3).join(',') + ', ' + data[0].display_name.split(',').slice(7, 8)}`;
+						
+						const status = data[0].display_name.split(',');
+						geoStatus = status[0] + ',' + status[1] + ',' + status[2] + ',' + status[6];
 					}
 				});			
 		} catch {

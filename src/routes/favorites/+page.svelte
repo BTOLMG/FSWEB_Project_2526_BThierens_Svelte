@@ -64,10 +64,7 @@
 			`)
 			.in('id', favorieten);
 
-		actoren = ((data ?? []) as unknown as Actor[]).map((a) => ({
-			...a,
-			categorie: Array.isArray(a.categorie) ? (a.categorie[0] ?? null) : a.categorie
-		}));
+		actoren = (data ?? []) as unknown as Actor[];
 
 		loading = false;
 	});
