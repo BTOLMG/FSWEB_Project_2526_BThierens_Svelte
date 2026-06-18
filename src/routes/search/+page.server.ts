@@ -29,17 +29,8 @@ export async function load({ url }) {
 		`
 	).eq('isVisible', true);
 
-	if (searchTerm) {
-		const term = searchTerm.toLowerCase();
-		query = query.or(
-			`publieke_naam.ilike.%${term}%,` +
-			`aangeboden_diensten.ilike.%${term}%,` +
-			`gemeente.ilike.%${term}%`
-		);
-	}
-
 	const { data: raw } = await query;
-
+	
 	if (!raw) {
 		return {
 			searchTerm,
@@ -53,15 +44,19 @@ export async function load({ url }) {
 	const gefilterd = raw.filter((actor) => {
 		if (searchTerm) {
 			const term = searchTerm.toLowerCase();
+			
 			const matchesRubriek = actor.actor_rubriek.some(({ rubriek }) =>
 				rubriek.naam.toLowerCase().includes(term)
 			);
+			
+			const matchesCategorie = actor.categorie?.naam?.toLowerCase().includes(term);
+
 			const matchesMain =
 				actor.publieke_naam?.toLowerCase().includes(term) ||
 				actor.aangeboden_diensten?.toLowerCase().includes(term) ||
 				actor.gemeente?.toLowerCase().includes(term);
 
-			if (!matchesMain && !matchesRubriek) return false;
+			if (!matchesMain && !matchesRubriek && !matchesCategorie) return false;
 		}
 
 		if (selectedGemeentes.length > 0 && !selectedGemeentes.includes(gemeenteLabel(actor))) {
